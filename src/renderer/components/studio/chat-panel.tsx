@@ -75,7 +75,7 @@ export function ChatPanel({ onGenerateCode, isGenerating }: ChatPanelProps) {
   ]
 
   return (
-    <div className="flex flex-col h-full w-80 md:w-96 border-r border-border bg-card/80 backdrop-blur-md">
+    <div className="flex flex-col h-full w-80 md:w-96 border-r border-border bg-card">
       {/* Chat Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <div className="flex items-center gap-2">

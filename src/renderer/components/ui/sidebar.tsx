@@ -101,7 +101,7 @@ export function Sidebar({
     return (
       <div className="fixed inset-0 z-50 flex">
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity"
+          className="fixed inset-0 bg-black/60 transition-opacity"
           onClick={() => setOpenMobile(false)}
         />
         <aside

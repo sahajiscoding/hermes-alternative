@@ -36,7 +36,7 @@ export const TEMPLATES: Record<string, ProjectTemplate> = {
   </style>
 </head>
 <body class="bg-zinc-950 text-zinc-100 min-h-screen flex flex-col">
-  <header class="border-b border-zinc-800/80 px-6 py-4 flex items-center justify-between backdrop-blur-md sticky top-0">
+  <header class="border-b border-zinc-800 bg-zinc-900 px-6 py-4 flex items-center justify-between sticky top-0">
     <div class="flex items-center gap-2">
       <div class="size-6 bg-white rounded-md"></div>
       <span class="font-bold text-lg tracking-tight">Apex</span>

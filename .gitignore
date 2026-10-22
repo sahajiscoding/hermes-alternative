@@ -4,3 +4,4 @@ dist-electron/
 dist-pack/
 *.log
 .env
+.ui-ux-pro-max/

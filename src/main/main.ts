@@ -16,7 +16,7 @@ async function createWindow() {
     height: 880,
     minWidth: 1024,
     minHeight: 700,
-    backgroundColor: '#09090b',
+    backgroundColor: '#090d16',
     title: 'Hermes Alternative',
     titleBarStyle: 'default',
     webPreferences: {
@@ -57,6 +57,28 @@ async function createWindow() {
 // IPC Handlers
 ipcMain.handle('get-server-info', async () => {
   return localServer.getServerDetails()
+})
+
+ipcMain.handle('get-network-interfaces', async () => {
+  return localServer.getNetworkInterfaces()
+})
+
+ipcMain.handle('set-primary-ip', async (_event, ip: string) => {
+  localServer.setLanIp(ip)
+  return { success: true, ip }
+})
+
+ipcMain.handle('rotate-pin', async () => {
+  const pin = localServer.rotatePin()
+  return { pin }
+})
+
+ipcMain.handle('get-registered-devices', async () => {
+  return localServer.getRegisteredDevices()
+})
+
+ipcMain.handle('revoke-device', async (_event, id: string) => {
+  return localServer.revokeDevice(id)
 })
 
 ipcMain.handle('set-sleep-prevention', async (_event, enable: boolean) => {

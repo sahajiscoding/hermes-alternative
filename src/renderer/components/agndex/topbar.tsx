@@ -1,27 +1,24 @@
-import { useState } from 'react'
-import {
-  CaretDownIcon,
-  ProjectIcon,
-} from './icons'
+import { useState, useEffect } from 'react'
 import { ThemeToggle } from './theme-toggle'
 import { useDashboardNavigation } from './navigation'
 import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { SidebarTrigger } from '@/components/ui/sidebar'
-import { navigationGroups, projects, type Project } from '../../data'
-import { QrCode, Smartphone } from 'lucide-react'
+import { navigationGroups } from '../../data'
+import { Smartphone, QrCode, UserCheck, ShieldCheck } from 'lucide-react'
 
 const navigationItems = navigationGroups.flatMap((group) => group.items)
 
 export function DashboardTopbar() {
   const { pathname, navigate } = useDashboardNavigation()
-  const [selectedProject, setSelectedProject] = useState<Project>(projects[0])
+  const [hostIp, setHostIp] = useState('192.168.1.3')
+
+  useEffect(() => {
+    if ((window as any).electron?.getServerInfo) {
+      ;(window as any).electron.getServerInfo().then((info: any) => {
+        if (info?.ip) setHostIp(info.ip)
+      })
+    }
+  }, [])
 
   const currentPage =
     navigationItems.find(({ href }) =>
@@ -31,62 +28,38 @@ export function DashboardTopbar() {
     ) ?? navigationItems[0]
 
   return (
-    <header className="sticky top-0 z-40 flex h-14 items-center justify-between gap-2 px-4 border-b border-border bg-background/80 backdrop-blur-md md:h-16 md:px-6">
-      <div className="flex items-center gap-2">
-        <SidebarTrigger className="size-9 md:hidden" />
-        <nav className="hidden items-center gap-2 text-sm text-muted-foreground md:flex">
-          <span className="font-semibold text-foreground">Hermes</span>
-          <span className="text-border">/</span>
-          <span>{selectedProject.name}</span>
-          <span className="text-border">/</span>
-          <span className="font-medium text-foreground">{currentPage.name}</span>
-        </nav>
+    <header className="sticky top-0 z-40 flex h-14 items-center justify-between gap-2 px-4 border-b border-border bg-background md:h-16 md:px-6">
+      <div className="flex items-center gap-2.5">
+        <SidebarTrigger className="size-9 md:hidden cursor-pointer" />
+        <div className="flex items-center gap-2 text-sm">
+          <span className="font-semibold text-foreground tracking-tight text-base">{currentPage.name}</span>
+          <span className="hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 text-xxs font-mono">
+            <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            {hostIp}:4152
+          </span>
+        </div>
       </div>
 
       <div className="flex items-center gap-2 md:gap-3">
         <Button
           variant="outline"
           size="sm"
-          onClick={() => navigate('/mobile-link')}
-          className="h-9 gap-1.5 px-3 text-xs font-normal"
+          onClick={() => navigate('/register')}
+          className="h-8 gap-1.5 px-2.5 text-xs font-normal cursor-pointer hidden sm:flex"
         >
-          <QrCode className="size-3.5 text-primary" />
-          <span className="hidden sm:inline">Pair Phone</span>
+          <UserCheck className="size-3.5 text-primary" />
+          <span>Registration</span>
         </Button>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="secondary"
-              className="h-9 max-w-48 justify-between gap-2 px-3 text-xs data-open:[&>svg]:rotate-180 md:w-48"
-            >
-              <span className="flex items-center gap-1.5 overflow-hidden">
-                <ProjectIcon className="size-4" />
-                <span className="truncate">{selectedProject.name}</span>
-              </span>
-              <CaretDownIcon className="transition-transform size-3.5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="agndex-dashboard w-56">
-            <DropdownMenuRadioGroup
-              value={selectedProject.id}
-              onValueChange={(id) => {
-                const project = projects.find((item) => item.id === id)
-                if (project) setSelectedProject(project)
-              }}
-            >
-              {projects.map((project) => (
-                <DropdownMenuRadioItem
-                  key={project.id}
-                  value={project.id}
-                  className="font-normal text-muted-foreground data-[state=checked]:font-medium data-[state=checked]:text-foreground text-xs"
-                >
-                  {project.name}
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => navigate('/mobile-link')}
+          className="h-8 gap-1.5 px-2.5 text-xs font-normal cursor-pointer"
+        >
+          <QrCode className="size-3.5 text-emerald-500" />
+          <span className="hidden sm:inline">Pair Mobile</span>
+        </Button>
 
         <ThemeToggle />
       </div>

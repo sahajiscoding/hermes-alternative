@@ -1,58 +1,12 @@
-import type { ComponentType, SVGProps } from 'react'
-import { MonitorIcon, MoonIcon, SunIcon } from './icons'
-import { useTheme, type Theme } from './theme-provider'
-import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-
-type ThemeIcon = ComponentType<SVGProps<SVGSVGElement>>
-
-const themes: { value: Theme; label: string; icon: ThemeIcon }[] = [
-  { value: 'light', label: 'Light', icon: SunIcon },
-  { value: 'dark', label: 'Dark', icon: MoonIcon },
-  { value: 'system', label: 'System', icon: MonitorIcon },
-]
+import { Moon } from 'lucide-react'
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme()
-  const ActiveIcon =
-    themes.find((item) => item.value === theme)?.icon ?? MonitorIcon
-
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="size-8 text-muted-foreground hover:text-foreground"
-          aria-label="Theme"
-        >
-          <ActiveIcon />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="agndex-dashboard w-36">
-        <DropdownMenuRadioGroup
-          value={theme}
-          onValueChange={(value) => setTheme(value as Theme)}
-        >
-          {themes.map(({ value, label, icon: Icon }) => (
-            <DropdownMenuRadioItem
-              key={value}
-              value={value}
-              className="font-normal text-muted-foreground data-[state=checked]:font-medium data-[state=checked]:text-foreground"
-            >
-              <Icon className="size-4" />
-              {label}
-            </DropdownMenuRadioItem>
-          ))}
-        </DropdownMenuRadioGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div
+      className="flex items-center justify-center size-8 rounded-lg border border-border bg-card text-muted-foreground select-none"
+      title="OLED Dark Mode (Active)"
+    >
+      <Moon className="size-4 text-emerald-500" />
+    </div>
   )
 }

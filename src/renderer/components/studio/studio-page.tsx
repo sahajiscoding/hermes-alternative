@@ -105,7 +105,7 @@ export function StudioPage() {
   return (
     <div className="flex flex-col h-full w-full overflow-hidden bg-background">
       {/* Top Studio Bar */}
-      <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-card/60 backdrop-blur-md">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-card">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <Sparkles className="size-4 text-primary" />
