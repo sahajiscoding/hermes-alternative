@@ -5,6 +5,9 @@
   "author": "sahajiscoding",
   "main": "dist-electron/main/main.js",
   "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
     "dev": "vite",
     "build:web": "vite build",
