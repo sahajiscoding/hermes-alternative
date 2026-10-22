@@ -7,6 +7,7 @@ import { TerminalView } from './components/views/terminal-view'
 import { MobileLinkView } from './components/views/mobile-link-view'
 import { TournamentView } from './components/views/tournament-view'
 import { CrashOutView } from './components/views/crashout-view'
+import { StudioPage } from './components/studio/studio-page'
 import { MobileApp } from './mobile/mobile-app'
 import {
   DashboardNavigationProvider,
@@ -28,6 +29,8 @@ function DashboardRoute() {
     content = <ApiKeysPage />
   } else if (pathname === '/billing') {
     content = <BillingPage />
+  } else if (pathname === '/studio') {
+    content = <StudioPage />
   } else if (pathname === '/terminal') {
     content = <TerminalView />
   } else if (pathname === '/mobile-link') {

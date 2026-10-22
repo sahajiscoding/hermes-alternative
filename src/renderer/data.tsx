@@ -30,6 +30,7 @@ export const navigationGroups: NavigationGroup[] = [
     label: 'General',
     items: [
       { name: 'Dashboard', href: '/', icon: HomeIcon },
+      { name: 'Web Studio (Freebuff)', href: '/studio', icon: IndexesIcon },
       { name: 'Agent Terminal', href: '/terminal', icon: IndexesIcon },
       { name: 'Mobile Companion', href: '/mobile-link', icon: ProjectIcon },
     ],

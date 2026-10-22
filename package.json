@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "build:web": "vite build",
     "build": "tsc && vite build && tsc -p tsconfig.electron.json",
     "start": "electron .",
     "app:dev": "node scripts/dev.mjs",
