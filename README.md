@@ -1,9 +1,6 @@
 # Hermes Alternative - Autonomous Desktop Coding Agent
 
-Hermes Alternative is an autonomous desktop coding agent built for Windows with bring-your-own-key (BYOK) multi-provider support, an embedded local server implementing the **Sesori API specification** for remote smartphone control, native Win32 **sleep prevention**, and three specialized execution engines:
-- **Anti-Slop Design Mode (`larp`)**: Eliminates generic AI templates, enforcing crisp typography and physical Apple fluid interactions.
-- **Six-Agent Tournament (`67`)**: Pits 6 internal agent personas in a round-robin tournament to vet and synthesize optimal solutions.
-- **Self-Attacking Auditor (`crash-out`)**: Adversarially attacks code proposals, shell injections, path escapes, and edge cases before execution.
+Hermes Alternative is an autonomous desktop coding agent built for Windows with bring-your-own-key (BYOK) multi-provider support, an embedded local server implementing the **Sesori API specification** for remote smartphone control and native Win32 **sleep prevention**
 
 ---
 
