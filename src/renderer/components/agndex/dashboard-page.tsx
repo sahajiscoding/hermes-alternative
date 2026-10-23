@@ -1,7 +1,7 @@
 import { DownloadIcon, DeveloperIcon, GithubIcon, MonitorIcon, ShieldIcon, CpuIcon, ZapIcon } from './icons'
 
 const EXE_DOWNLOAD_URL = 'https://github.com/sahajiscoding/hermes-alternative/releases/latest/download/Hermes-Alternative-Setup-1.0.0.exe'
-const PORTABLE_DOWNLOAD_URL = 'https://github.com/sahajiscoding/hermes-alternative/releases/latest/download/Hermes-Alternative-1.0.0-portable.zip'
+const PORTABLE_DOWNLOAD_URL = 'https://github.com/sahajiscoding/hermes-alternative/releases/latest/download/Hermes-Alternative-1.0.0.exe'
 const GITHUB_REPO_URL = 'https://github.com/sahajiscoding/hermes-alternative'
 
 export function DashboardPage() {
@@ -82,7 +82,7 @@ export function DashboardPage() {
                 <DownloadIcon className="size-7" />
               </div>
               <div className="text-center space-y-1">
-                <h3 className="font-semibold text-lg">Portable ZIP</h3>
+                <h3 className="font-semibold text-lg">Portable Executable</h3>
                 <p className="text-sm text-muted-foreground dark:text-neutral-400">No install • Run anywhere</p>
                 <p className="text-xs text-neutral-500 dark:text-neutral-500">~115 MB</p>
               </div>

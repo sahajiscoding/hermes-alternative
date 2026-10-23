@@ -1,45 +1,88 @@
-name: Release Build
+name: Release
 
 on:
   push:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g., v1.0.0)'
+        required: true
+        type: string
 
 permissions:
   contents: write
 
 jobs:
-  release:
+  build:
     runs-on: windows-latest
+    timeout-minutes: 30
+
     steps:
-      - name: Check out repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Build and package Windows .exe
-        run: npm run dist:all
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build app
+        run: npm run build
 
-      - name: Publish GitHub Release
-        uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Build Windows installer & portable
+        run: npm run dist:win
+
+      - name: Rename artifacts for clean URLs
+        shell: pwsh
+        run: |
+          cd dist-pack
+          # Rename installer
+          $installer = Get-ChildItem "*Setup*.exe" | Select-Object -First 1
+          if ($installer) {
+            Rename-Item $installer.Name "Hermes-Alternative-Setup-1.0.0.exe"
+            Write-Host "Renamed installer to: Hermes-Alternative-Setup-1.0.0.exe"
+          }
+          # Rename portable (it's an .exe, not .zip)
+          $portable = Get-ChildItem "*Hermes Alternative*.exe" | Where-Object { $_.Name -notmatch "Setup" } | Select-Object -First 1
+          if ($portable) {
+            Rename-Item $portable.Name "Hermes-Alternative-1.0.0.exe"
+            Write-Host "Renamed portable to: Hermes-Alternative-1.0.0.exe"
+          }
+          Get-ChildItem *.exe | ForEach-Object { Write-Host "Artifact: $($_.Name) - $([math]::round($_.Length/1MB, 1)) MB" }
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
         with:
-          files: |
-            dist-pack/*.exe
-            dist-pack/*.blockmap
-            dist-pack/latest.yml
+          name: windows-binaries
+          path: dist-pack/*.exe
+          retention-days: 90
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-binaries
+          path: artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Hermes Alternative ${{ github.ref_name }}
           draft: false
           prerelease: false
           generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          files: |
+            artifacts/Hermes-Alternative-Setup-1.0.0.exe
+            artifacts/Hermes-Alternative-1.0.0.exe
