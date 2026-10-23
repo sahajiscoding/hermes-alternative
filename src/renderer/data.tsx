@@ -1,10 +1,7 @@
 import type { ComponentType, SVGProps } from 'react'
 import {
   HomeIcon,
-  KeyIcon,
-  ProjectIcon,
-  SettingsIcon,
-  IndexesIcon,
+  DownloadIcon,
   LogoutIcon,
 } from './components/agndex/icons'
 
@@ -28,35 +25,11 @@ export const navigationGroups: NavigationGroup[] = [
     label: 'Overview',
     items: [
       { name: 'Dashboard', href: '/', icon: HomeIcon },
-      { name: 'Registration & Setup', href: '/register', icon: ProjectIcon, badge: 'New' },
-      { name: 'Mobile Companion', href: '/mobile-link', icon: ProjectIcon },
-    ],
-  },
-  {
-    label: 'Developer Tools',
-    items: [
-      { name: 'Web Studio', href: '/studio', icon: IndexesIcon },
-      { name: 'Agent Terminal', href: '/terminal', icon: IndexesIcon },
-    ],
-  },
-  {
-    label: 'Evaluation Modes',
-    items: [
-      { name: '6-Agent Tournament', href: '/tournament', icon: IndexesIcon },
-      { name: 'Crash-Out Auditor', href: '/crash-out', icon: KeyIcon },
-    ],
-  },
-  {
-    label: 'Configuration',
-    items: [
-      { name: 'BYOK API Keys', href: '/api-keys', icon: KeyIcon },
     ],
   },
 ]
 
-export const footerNavigation: NavigationItem[] = [
-  { name: 'Registration & Profile', href: '/register', icon: SettingsIcon },
-]
+export const footerNavigation: NavigationItem[] = []
 
 export const logoutItem = {
   name: 'Reset Local Vault',
