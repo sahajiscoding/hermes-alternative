@@ -53,7 +53,7 @@ export function RegistrationPage() {
     const host = window.location.hostname || 'localhost'
     fetch(`http://${host}:4152/api/v1/devices`)
       .then((res) => res.json())
-      .then(setRegisteredDevices)
+      .then((data) => setRegisteredDevices(Array.isArray(data) ? data : []))
       .catch(() => {})
   }, [])
 

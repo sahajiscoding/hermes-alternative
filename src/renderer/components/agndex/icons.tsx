@@ -28,6 +28,17 @@ export function HomeIcon({ className, ...props }: IconProps) {
   )
 }
 
+export function ChatIcon({ className, ...props }: IconProps) {
+  return (
+    <Icon className={className} {...props}>
+      <path
+        d="M4 3.33C2.71 3.33 1.67 4.37 1.67 5.67V12.33C1.67 13.63 2.71 14.67 4 14.67H5V17.5L9.17 14.67H16C17.29 14.67 18.33 13.63 18.33 12.33V5.67C18.33 4.37 17.29 3.33 16 3.33H4Z"
+        fill="currentColor"
+      />
+    </Icon>
+  )
+}
+
 export function KeyIcon({ className, ...props }: IconProps) {
   return (
     <Icon className={className} {...props}>

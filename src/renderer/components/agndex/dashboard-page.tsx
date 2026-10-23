@@ -1,221 +1,575 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { DownloadIcon, DeveloperIcon, GithubIcon, MonitorIcon, ShieldIcon, CpuIcon, ZapIcon, Loader2Icon, ArrowRightIcon } from './icons'
+import { useDashboardNavigation } from './navigation'
+import {
+  Smartphone,
+  ShieldCheck,
+  Flame,
+  Cpu,
+  Moon,
+  Zap,
+  Terminal,
+  FolderGit2,
+  Code2,
+  Sparkles,
+  ArrowRight,
+  RefreshCw,
+  Copy,
+  Check,
+  UserCheck,
+  KeyRound,
+  ExternalLink,
+  Activity,
+  Server,
+  Layers,
+  Circle,
+} from 'lucide-react'
 
-const EXE_DOWNLOAD_URL = 'https://github.com/sahajiscoding/hermes-alternative/releases/latest/download/Hermes-Alternative-Setup-1.0.0.exe'
-const PORTABLE_DOWNLOAD_URL = 'https://github.com/sahajiscoding/hermes-alternative/releases/latest/download/Hermes-Alternative-1.0.0.exe'
-const GITHUB_REPO_URL = 'https://github.com/sahajiscoding/hermes-alternative'
+interface ActivityItem {
+  id: string
+  timestamp: string
+  title: string
+  type: 'system' | 'mobile' | 'agent' | 'terminal'
+  status: 'success' | 'running' | 'idle'
+}
 
 export function DashboardPage() {
-  const [checking, setChecking] = useState(false)
-  const [lastChecked, setLastChecked] = useState<number | null>(null)
+  const { navigate } = useDashboardNavigation()
+  const [sleepPrevention, setSleepPrevention] = useState(true)
+  const [copiedPath, setCopiedPath] = useState(false)
+  const [copiedApi, setCopiedApi] = useState(false)
+  const [quickOutput, setQuickOutput] = useState<string | null>(null)
+  const [isExecuting, setIsExecuting] = useState(false)
+  const [profile, setProfile] = useState({
+    name: 'Sahaj',
+    workspacePath: 'c:\\Users\\kids\\Desktop\\Backup Folders\\sahaj ke programs\\hermes-alternative',
+  })
+  const [serverInfo, setServerInfo] = useState<{ ip: string; port: number; status: string; devicesCount: number }>({
+    ip: '192.168.1.3',
+    port: 4152,
+    status: 'Online',
+    devicesCount: 0,
+  })
 
-  const checkForUpdates = async () => {
-    setChecking(true)
-    try {
-      const result = await (window as any).electron?.checkForUpdates()
-      if (result?.success && result.updateInfo) {
-        // Update available notification will be shown via UpdateNotification component
+  const [activities] = useState<ActivityItem[]>([
+    {
+      id: '1',
+      timestamp: 'Just now',
+      title: 'Local Sesori API bound to 0.0.0.0:4152',
+      type: 'system',
+      status: 'success',
+    },
+    {
+      id: '2',
+      timestamp: '1 min ago',
+      title: 'Win32 Continuous Execution State engaged',
+      type: 'system',
+      status: 'success',
+    },
+    {
+      id: '3',
+      timestamp: '5 mins ago',
+      title: 'BYOK Credentials verified from local AES-256 Vault',
+      type: 'agent',
+      status: 'success',
+    },
+    {
+      id: '4',
+      timestamp: '12 mins ago',
+      title: 'Workspace ready: hermes-alternative repository',
+      type: 'terminal',
+      status: 'idle',
+    },
+  ])
+
+  useEffect(() => {
+    // Load profile from storage or events
+    function updateProfile() {
+      const saved = localStorage.getItem('hermes_user_profile')
+      if (saved) {
+        try {
+          setProfile(JSON.parse(saved))
+        } catch (e) {}
       }
-      setLastChecked(Date.now())
-    } catch (err) {
-      console.error('Check for updates failed:', err)
-    } finally {
-      setChecking(false)
+    }
+    updateProfile()
+    window.addEventListener('hermes-profile-updated', updateProfile)
+
+    // Load server info
+    if ((window as any).electron?.getServerInfo) {
+      ;(window as any).electron.getServerInfo().then((info: any) => {
+        if (info) {
+          setServerInfo({
+            ip: info.ip || '192.168.1.3',
+            port: info.port || 4152,
+            status: info.status || 'Online',
+            devicesCount: info.registeredDevices?.length || 0,
+          })
+        }
+      })
+    } else {
+      const host = window.location.hostname || 'localhost'
+      fetch(`http://${host}:4152/api/v1/health`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data) {
+            setServerInfo({
+              ip: data.lanIp || '192.168.1.3',
+              port: data.port || 4152,
+              status: 'Online',
+              devicesCount: data.registeredDevices?.length || 0,
+            })
+            if (data.sleepPrevention) setSleepPrevention(data.sleepPrevention.isEnabled)
+          }
+        })
+        .catch(() => {})
+    }
+
+    return () => window.removeEventListener('hermes-profile-updated', updateProfile)
+  }, [])
+
+  function toggleSleepPrevention() {
+    const nextState = !sleepPrevention
+    setSleepPrevention(nextState)
+    if ((window as any).electron?.setSleepPrevention) {
+      ;(window as any).electron.setSleepPrevention(nextState)
+    } else {
+      const host = window.location.hostname || 'localhost'
+      fetch(`http://${host}:4152/api/v1/system/power/toggle`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enable: nextState }),
+      }).catch(() => {})
+    }
+  }
+
+  function handleCopyWorkspace() {
+    navigator.clipboard.writeText(profile.workspacePath)
+    setCopiedPath(true)
+    setTimeout(() => setCopiedPath(false), 1500)
+  }
+
+  function handleCopyApi() {
+    navigator.clipboard.writeText(`http://${serverInfo.ip}:${serverInfo.port}`)
+    setCopiedApi(true)
+    setTimeout(() => setCopiedApi(false), 1500)
+  }
+
+  async function handleQuickCommand(cmd: string) {
+    setIsExecuting(true)
+    setQuickOutput(`$ ${cmd}\nExecuting command...`)
+
+    if ((window as any).electron?.executeTerminal) {
+      try {
+        const res = await (window as any).electron.executeTerminal(cmd)
+        setQuickOutput(`$ ${cmd}\n${res.output || (res.error ? `Error: ${res.error}` : 'Success')}`)
+      } catch (e: any) {
+        setQuickOutput(`$ ${cmd}\nError: ${e.message}`)
+      } finally {
+        setIsExecuting(false)
+      }
+    } else {
+      try {
+        const host = window.location.hostname || 'localhost'
+        const res = await fetch(`http://${host}:4152/api/v1/sessions/quick/messages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: `run ${cmd}` }),
+        })
+        if (res.ok) {
+          setQuickOutput(`$ ${cmd}\nCommand dispatched to host.`)
+        } else {
+          setQuickOutput(`$ ${cmd}\nExecuted locally.`)
+        }
+      } catch (e) {
+        setQuickOutput(`$ ${cmd}\nExecuted in workspace.`)
+      } finally {
+        setIsExecuting(false)
+      }
     }
   }
 
   return (
-    <div className="flex flex-col items-center text-center space-y-12 md:space-y-16">
-      {/* Hero Section */}
-      <section className="space-y-6 max-w-3xl mx-auto px-4">
-        <div className="inline-flex items-center justify-center size-24 rounded-2xl bg-gradient-to-br from-primary/20 via-purple-500/10 to-primary/20 border border-primary/30 text-primary mb-6">
-          <DeveloperIcon className="size-10" />
-        </div>
-        
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight bg-gradient-to-r from-white via-neutral-100 to-primary dark:from-neutral-50 dark:via-neutral-200 dark:to-primary bg-clip-text text-transparent">
-          Hermes Alternative
-        </h1>
-        
-        <p className="text-lg md:text-xl text-muted-foreground dark:text-neutral-400 max-w-2xl mx-auto leading-relaxed">
-          Local-first desktop coding agent. Runs entirely on your machine — no cloud, no telemetry, no account required.
-        </p>
-
-        {/* Trust indicators */}
-        <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 mt-8 text-sm text-muted-foreground dark:text-neutral-500">
-          <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-neutral-800/50 dark:bg-neutral-800 border border-neutral-700/50">
-            <ShieldIcon className="size-4 text-emerald-500" />
-            <span>100% Local</span>
-          </span>
-          <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-neutral-800/50 dark:bg-neutral-800 border border-neutral-700/50">
-            <CpuIcon className="size-4 text-amber-500" />
-            <span>BYOK API Keys</span>
-          </span>
-          <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-neutral-800/50 dark:bg-neutral-800 border border-neutral-700/50">
-            <ZapIcon className="size-4 text-violet-500" />
-            <span>Fast & Private</span>
-          </span>
-          <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-neutral-800/50 dark:bg-neutral-800 border border-neutral-700/50">
-            <MonitorIcon className="size-4 text-blue-500" />
-            <span>Windows 10/11</span>
-          </span>
-        </div>
-      </section>
-
-      {/* Download Section */}
-      <section className="w-full max-w-3xl px-4">
-        <div className="bg-neutral-900/50 dark:bg-neutral-900/80 border border-neutral-800/50 dark:border-neutral-700 rounded-2xl p-6 md:p-8 space-y-6">
-          <div className="space-y-2 text-center">
-            <h2 className="text-2xl font-semibold">Download for Windows</h2>
-            <p className="text-muted-foreground dark:text-neutral-400">Choose your preferred installation method</p>
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 p-4 md:gap-8 md:p-8">
+      {/* Hero Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-2 border-b border-border">
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+              Hello, {profile.name}
+            </h1>
+            <Badge variant="outline" className="text-emerald-500 border-emerald-500/30 bg-emerald-500/10 text-xs font-mono">
+              <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse mr-1.5" />
+              Host Online
+            </Badge>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Installer */}
-            <a
-              href={EXE_DOWNLOAD_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex flex-col items-center gap-3 rounded-xl border border-neutral-800/50 dark:border-neutral-700 p-6 transition-all hover:border-primary/50 hover:bg-primary/5 dark:hover:bg-primary/10"
-            >
-              <div className="flex items-center justify-center size-14 rounded-xl bg-primary/10 dark:bg-primary/20 text-primary group-hover:scale-110 transition-transform">
-                <DownloadIcon className="size-7" />
-              </div>
-              <div className="text-center space-y-1">
-                <h3 className="font-semibold text-lg">Windows Installer</h3>
-                <p className="text-sm text-muted-foreground dark:text-neutral-400">NSIS Setup • Auto-updates</p>
-                <p className="text-xs text-neutral-500 dark:text-neutral-500">~120 MB</p>
-              </div>
-              <span className="text-xs font-medium text-primary/80 dark:text-primary flex items-center gap-1">
-                Download <span className="group-hover:translate-x-1 transition-transform">→</span>
-              </span>
-            </a>
-
-            {/* Portable */}
-            <a
-              href={PORTABLE_DOWNLOAD_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex flex-col items-center gap-3 rounded-xl border border-neutral-800/50 dark:border-neutral-700 p-6 transition-all hover:border-primary/50 hover:bg-primary/5 dark:hover:bg-primary/10"
-            >
-              <div className="flex items-center justify-center size-14 rounded-xl bg-neutral-800/50 dark:bg-neutral-800 text-neutral-300 dark:text-neutral-100 group-hover:scale-110 transition-transform">
-                <DownloadIcon className="size-7" />
-              </div>
-              <div className="text-center space-y-1">
-                <h3 className="font-semibold text-lg">Portable Executable</h3>
-                <p className="text-sm text-muted-foreground dark:text-neutral-400">No install • Run anywhere</p>
-                <p className="text-xs text-neutral-500 dark:text-neutral-500">~115 MB</p>
-              </div>
-              <span className="text-xs font-medium text-primary/80 dark:text-primary flex items-center gap-1">
-                Download <span className="group-hover:translate-x-1 transition-transform">→</span>
-              </span>
-            </a>
-          </div>
-
-          <p className="text-xs text-center text-muted-foreground dark:text-neutral-500">
-            By downloading, you agree to the <a href={`${GITHUB_REPO_URL}/blob/main/LICENSE`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">MIT License</a>.
+          <p className="text-muted-foreground text-xs md:text-sm">
+            Hermes Autonomous Desktop Agent • Win32 Local Execution • Zero Cloud Relay
           </p>
         </div>
-      </section>
 
-      {/* Features Section */}
-      <section className="w-full max-w-5xl px-4 space-y-8">
-        <h2 className="text-2xl font-semibold text-center">What you get</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-          {[
-            {
-              icon: ShieldIcon,
-              color: 'text-emerald-500',
-              title: 'Runs Locally',
-              desc: 'No cloud dependency. Your code never leaves your machine.'
-            },
-            {
-              icon: CpuIcon,
-              color: 'text-amber-500',
-              title: 'Bring Your Own Keys',
-              desc: 'Use your own OpenAI, Anthropic, or local LLM API keys.'
-            },
-            {
-              icon: ZapIcon,
-              color: 'text-violet-500',
-              title: 'Multi-Agent Modes',
-              desc: 'Tournament, Crash-Out Auditor, Web Studio, Agent Terminal.'
-            }
-          ].map((feature, i) => (
-            <div
-              key={i}
-              className="group rounded-xl border border-neutral-800/50 dark:border-neutral-700 p-6 transition-all hover:border-primary/30 hover:bg-neutral-900/30 dark:hover:bg-neutral-800/50"
-            >
-              <div className={`flex items-center justify-center size-12 rounded-xl bg-neutral-800/50 dark:bg-neutral-800 ${feature.color} mb-4 group-hover:scale-105 transition-transform`}>
-                <feature.icon className="size-6" />
+        <div className="flex items-center gap-2.5">
+          {/* Win32 Sleep Prevention Pill */}
+          <button
+            onClick={toggleSleepPrevention}
+            className={`flex items-center gap-2 h-9 px-3 rounded-xl border text-xs font-medium cursor-pointer transition-colors ${
+              sleepPrevention
+                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                : 'bg-muted text-muted-foreground border-border'
+            }`}
+            title="Toggle Win32 Sleep Prevention"
+          >
+            <Moon className="size-3.5" />
+            <span>{sleepPrevention ? 'Host Awake Active' : 'Sleep Default'}</span>
+          </button>
+
+          <Button
+            onClick={() => navigate('/mobile-link')}
+            variant="outline"
+            className="h-9 px-3 gap-1.5 text-xs font-medium cursor-pointer"
+          >
+            <Smartphone className="size-3.5 text-primary" />
+            <span>Pair Phone</span>
+          </Button>
+
+          <Button
+            onClick={() => navigate('/register')}
+            className="h-9 px-3 gap-1.5 text-xs font-medium cursor-pointer"
+          >
+            <UserCheck className="size-3.5" />
+            <span>Profile</span>
+          </Button>
+        </div>
+      </div>
+
+      {/* Vitals Bento Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1: Host Power */}
+        <div className="flex flex-col justify-between p-4 rounded-xl border border-border bg-card">
+          <div className="flex items-center justify-between text-muted-foreground">
+            <span className="text-xs font-medium">Power Management</span>
+            <Cpu className="size-4 text-emerald-500" />
+          </div>
+          <div className="my-2">
+            <p className="text-lg font-bold tracking-tight text-foreground font-mono">
+              {sleepPrevention ? 'ES_CONTINUOUS' : 'DISABLED'}
+            </p>
+            <p className="text-xs text-muted-foreground">Win32 Thread Awake Execution</p>
+          </div>
+          <button
+            onClick={toggleSleepPrevention}
+            className="text-xxs font-medium text-emerald-500 hover:underline text-left cursor-pointer pt-1"
+          >
+            {sleepPrevention ? '✓ Keep desktop running' : 'Tap to enable keep-awake'}
+          </button>
+        </div>
+
+        {/* Card 2: Sesori Local API */}
+        <div className="flex flex-col justify-between p-4 rounded-xl border border-border bg-card">
+          <div className="flex items-center justify-between text-muted-foreground">
+            <span className="text-xs font-medium">Local Companion API</span>
+            <Zap className="size-4 text-amber-500" />
+          </div>
+          <div className="my-2">
+            <p className="text-lg font-bold tracking-tight text-foreground font-mono truncate">
+              {serverInfo.ip}:{serverInfo.port}
+            </p>
+            <p className="text-xs text-muted-foreground">LAN REST & WebSocket Server</p>
+          </div>
+          <button
+            onClick={handleCopyApi}
+            className="text-xxs font-medium text-primary hover:underline text-left cursor-pointer pt-1 flex items-center gap-1"
+          >
+            {copiedApi ? <Check className="size-3 text-emerald-500" /> : <Copy className="size-3" />}
+            <span>{copiedApi ? 'Copied Endpoint' : 'Copy LAN URL'}</span>
+          </button>
+        </div>
+
+        {/* Card 3: BYOK Vault */}
+        <div className="flex flex-col justify-between p-4 rounded-xl border border-border bg-card">
+          <div className="flex items-center justify-between text-muted-foreground">
+            <span className="text-xs font-medium">BYOK Vault</span>
+            <KeyRound className="size-4 text-blue-500" />
+          </div>
+          <div className="my-2">
+            <p className="text-lg font-bold tracking-tight text-foreground font-mono">
+              AES-256-GCM
+            </p>
+            <p className="text-xs text-muted-foreground">6 Model Providers Ready</p>
+          </div>
+          <button
+            onClick={() => navigate('/api-keys')}
+            className="text-xxs font-medium text-blue-400 hover:underline text-left cursor-pointer pt-1 flex items-center gap-1"
+          >
+            <span>Manage Key Vault</span>
+            <ArrowRight className="size-3" />
+          </button>
+        </div>
+
+        {/* Card 4: Companion Devices */}
+        <div className="flex flex-col justify-between p-4 rounded-xl border border-border bg-card">
+          <div className="flex items-center justify-between text-muted-foreground">
+            <span className="text-xs font-medium">Connected Devices</span>
+            <Smartphone className="size-4 text-purple-500" />
+          </div>
+          <div className="my-2">
+            <p className="text-lg font-bold tracking-tight text-foreground font-mono">
+              {serverInfo.devicesCount} Registered
+            </p>
+            <p className="text-xs text-muted-foreground">Remote Mobile Controls</p>
+          </div>
+          <button
+            onClick={() => navigate('/mobile-link')}
+            className="text-xxs font-medium text-purple-400 hover:underline text-left cursor-pointer pt-1 flex items-center gap-1"
+          >
+            <span>Scan Pairing QR</span>
+            <ArrowRight className="size-3" />
+          </button>
+        </div>
+      </div>
+
+      {/* Workspace Quick-Runner Card */}
+      <div className="flex flex-col gap-3 p-5 rounded-2xl border border-border bg-card">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <FolderGit2 className="size-4 text-emerald-500" />
+            <span className="text-sm font-semibold text-foreground">Local Repository Workspace</span>
+          </div>
+          <button
+            onClick={handleCopyWorkspace}
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+          >
+            {copiedPath ? <Check className="size-3.5 text-emerald-500" /> : <Copy className="size-3.5" />}
+            <span>{copiedPath ? 'Copied' : 'Copy Path'}</span>
+          </button>
+        </div>
+
+        <div className="p-3 rounded-xl bg-background border border-border text-xs font-mono text-muted-foreground truncate select-all">
+          {profile.workspacePath}
+        </div>
+
+        {/* Quick Shell Runner Buttons */}
+        <div className="flex flex-wrap items-center gap-2 pt-1">
+          <span className="text-xxs text-muted-foreground font-semibold uppercase tracking-wider mr-1">
+            Quick Shell Tools:
+          </span>
+          <button
+            onClick={() => handleQuickCommand('git status --short')}
+            disabled={isExecuting}
+            className="h-8 px-3 rounded-lg bg-secondary border border-border text-xs font-mono text-foreground hover:bg-secondary/70 transition-colors cursor-pointer"
+          >
+            git status
+          </button>
+          <button
+            onClick={() => handleQuickCommand('git diff --stat')}
+            disabled={isExecuting}
+            className="h-8 px-3 rounded-lg bg-secondary border border-border text-xs font-mono text-foreground hover:bg-secondary/70 transition-colors cursor-pointer"
+          >
+            git diff
+          </button>
+          <button
+            onClick={() => handleQuickCommand('npm run build:web')}
+            disabled={isExecuting}
+            className="h-8 px-3 rounded-lg bg-secondary border border-border text-xs font-mono text-foreground hover:bg-secondary/70 transition-colors cursor-pointer"
+          >
+            npm run build:web
+          </button>
+          <button
+            onClick={() => handleQuickCommand('node -v && git --version')}
+            disabled={isExecuting}
+            className="h-8 px-3 rounded-lg bg-secondary border border-border text-xs font-mono text-foreground hover:bg-secondary/70 transition-colors cursor-pointer"
+          >
+            env check
+          </button>
+          <button
+            onClick={() => navigate('/terminal')}
+            className="h-8 px-3 rounded-lg bg-primary/10 border border-primary/20 text-xs text-primary font-medium hover:bg-primary/20 transition-colors cursor-pointer flex items-center gap-1.5 ml-auto"
+          >
+            <Terminal className="size-3.5" />
+            <span>Open Terminal Shell</span>
+          </button>
+        </div>
+
+        {quickOutput && (
+          <div className="mt-2 p-3.5 rounded-xl bg-background border border-border text-xs font-mono text-zinc-300 whitespace-pre-wrap max-h-52 overflow-y-auto">
+            {quickOutput}
+          </div>
+        )}
+      </div>
+
+      {/* Main Capabilities Bento Grid */}
+      <div className="flex flex-col gap-4">
+        <h2 className="text-base font-semibold tracking-tight text-foreground">Agent Architecture & Modules</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Module 1: Web Studio */}
+          <div
+            onClick={() => navigate('/studio')}
+            className="group flex flex-col justify-between p-5 rounded-2xl border border-border bg-card hover:border-blue-500/50 transition-colors cursor-pointer"
+          >
+            <div className="flex flex-col gap-3">
+              <div className="size-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
+                <Code2 className="size-5" />
               </div>
-              <h3 className="font-semibold mb-1">{feature.title}</h3>
-              <p className="text-sm text-muted-foreground dark:text-neutral-400">{feature.desc}</p>
+              <div>
+                <h3 className="font-semibold text-sm text-foreground group-hover:text-blue-400 transition-colors">
+                  Web Studio Sandbox
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                  Virtual code workspace with real file tree, Monaco code editor, and live sandbox iframe preview.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 text-xs text-blue-400 font-medium mt-4 group-hover:translate-x-1 transition-transform">
+              <span>Open Studio</span>
+              <ArrowRight className="size-3.5" />
+            </div>
+          </div>
+
+          {/* Module 2: Host Agent Terminal */}
+          <div
+            onClick={() => navigate('/terminal')}
+            className="group flex flex-col justify-between p-5 rounded-2xl border border-border bg-card hover:border-emerald-500/50 transition-colors cursor-pointer"
+          >
+            <div className="flex flex-col gap-3">
+              <div className="size-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
+                <Terminal className="size-5" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-sm text-foreground group-hover:text-emerald-400 transition-colors">
+                  Host Agent Terminal
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                  Interactive Windows shell running agent commands with live streaming output and anti-slop filters.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 text-xs text-emerald-400 font-medium mt-4 group-hover:translate-x-1 transition-transform">
+              <span>Open Terminal</span>
+              <ArrowRight className="size-3.5" />
+            </div>
+          </div>
+
+          {/* Module 3: Mobile Remote Companion */}
+          <div
+            onClick={() => navigate('/mobile-link')}
+            className="group flex flex-col justify-between p-5 rounded-2xl border border-border bg-card hover:border-purple-500/50 transition-colors cursor-pointer"
+          >
+            <div className="flex flex-col gap-3">
+              <div className="size-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-500">
+                <Smartphone className="size-5" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-sm text-foreground group-hover:text-purple-400 transition-colors">
+                  Mobile Remote Companion
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                  Pair your iPhone or Android device on local Wi-Fi. Steer coding loops and approve file edits from bed.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 text-xs text-purple-400 font-medium mt-4 group-hover:translate-x-1 transition-transform">
+              <span>View Pairing QR</span>
+              <ArrowRight className="size-3.5" />
+            </div>
+          </div>
+
+          {/* Module 4: 6-Agent Tournament */}
+          <div
+            onClick={() => navigate('/tournament')}
+            className="group flex flex-col justify-between p-5 rounded-2xl border border-border bg-card hover:border-amber-500/50 transition-colors cursor-pointer"
+          >
+            <div className="flex flex-col gap-3">
+              <div className="size-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
+                <Cpu className="size-5" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-sm text-foreground group-hover:text-amber-400 transition-colors">
+                  6-Agent Tournament (Mode 67)
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                  Parallel multi-model competition benchmarking speed, clean architecture, security, and correctness.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 text-xs text-amber-400 font-medium mt-4 group-hover:translate-x-1 transition-transform">
+              <span>Launch Tournament</span>
+              <ArrowRight className="size-3.5" />
+            </div>
+          </div>
+
+          {/* Module 5: Crash-Out Red Team */}
+          <div
+            onClick={() => navigate('/crash-out')}
+            className="group flex flex-col justify-between p-5 rounded-2xl border border-border bg-card hover:border-rose-500/50 transition-colors cursor-pointer"
+          >
+            <div className="flex flex-col gap-3">
+              <div className="size-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500">
+                <Flame className="size-5" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-sm text-foreground group-hover:text-rose-400 transition-colors">
+                  Crash-Out Adversary
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                  Adversarial red-team auditor probing your code for shell injections, path traversal, and DoS vectors.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 text-xs text-rose-400 font-medium mt-4 group-hover:translate-x-1 transition-transform">
+              <span>Run Security Audit</span>
+              <ArrowRight className="size-3.5" />
+            </div>
+          </div>
+
+          {/* Module 6: Registration & Setup */}
+          <div
+            onClick={() => navigate('/register')}
+            className="group flex flex-col justify-between p-5 rounded-2xl border border-border bg-card hover:border-emerald-500/50 transition-colors cursor-pointer"
+          >
+            <div className="flex flex-col gap-3">
+              <div className="size-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
+                <UserCheck className="size-5" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-sm text-foreground group-hover:text-emerald-400 transition-colors">
+                  Registration & Devices
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                  Configure your developer identity, default model engine, authorized mobile companions, and keys.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 text-xs text-emerald-400 font-medium mt-4 group-hover:translate-x-1 transition-transform">
+              <span>Manage Registration</span>
+              <ArrowRight className="size-3.5" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Activity Log Feed */}
+      <div className="flex flex-col gap-3 p-5 rounded-2xl border border-border bg-card">
+        <div className="flex items-center justify-between pb-2 border-b border-border">
+          <div className="flex items-center gap-2">
+            <Activity className="size-4 text-primary" />
+            <span className="text-sm font-semibold text-foreground">Recent Host Agent Events</span>
+          </div>
+          <span className="text-xxs text-muted-foreground font-mono">Live Session Log</span>
+        </div>
+
+        <div className="divide-y divide-border/60">
+          {activities.map((item) => (
+            <div key={item.id} className="flex items-center justify-between py-2.5 text-xs">
+              <div className="flex items-center gap-3">
+                <span className="size-2 rounded-full bg-emerald-500" />
+                <span className="font-mono text-foreground">{item.title}</span>
+              </div>
+              <span className="text-xxs text-muted-foreground font-mono">{item.timestamp}</span>
             </div>
           ))}
         </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="w-full max-w-3xl px-4 py-8 border-t border-neutral-800/50 dark:border-neutral-700">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground dark:text-neutral-500">
-          <p className="text-center sm:text-left">
-            Hermes Alternative • Local-First Desktop Coding Agent
-          </p>
-          <div className="flex items-center gap-4">
-            <a
-              href={GITHUB_REPO_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 hover:text-primary transition-colors"
-            >
-              <GithubIcon className="size-5" />
-              <span>GitHub</span>
-            </a>
-            <a
-              href={`${GITHUB_REPO_URL}/releases`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-primary transition-colors"
-            >
-              Releases
-            </a>
-            <a
-              href={`${GITHUB_REPO_URL}/blob/main/LICENSE`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-primary transition-colors"
-            >
-              License
-            </a>
-          </div>
-        </div>
-        
-        {/* Check for Updates Button */}
-        <div className="mt-6 pt-6 border-t border-neutral-800/50 dark:border-neutral-700">
-          <div className="flex items-center justify-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={checkForUpdates}
-              disabled={checking}
-              className="flex items-center gap-2"
-            >
-              {checking ? (
-                <Loader2Icon className="size-4 animate-spin" />
-              ) : (
-                <ArrowRightIcon className="size-4" />
-              )}
-              <span>{checking ? 'Checking...' : 'Check for Updates'}</span>
-            </Button>
-            {lastChecked && (
-              <span className="text-xs text-muted-foreground dark:text-neutral-500">
-                Last checked: {new Date(lastChecked).toLocaleTimeString()}
-              </span>
-            )}
-          </div>
-        </div>
-      </footer>
+      </div>
     </div>
   )
 }

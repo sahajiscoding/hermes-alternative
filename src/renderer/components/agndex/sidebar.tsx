@@ -1,11 +1,19 @@
 import { useState, useEffect } from 'react'
 import {
+  BadgeCheckIcon,
   ChevronsUpDownIcon,
+  ShieldIcon,
+  UserPlusIcon,
+  UsersIcon,
+  UserCheck,
+  KeyRound,
+  Smartphone,
   RotateCcw,
 } from 'lucide-react'
 import { HermesLogo } from './logo'
 import { DashboardLink, useDashboardNavigation } from './navigation'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,6 +38,7 @@ import {
 } from '@/components/ui/sidebar'
 import {
   getCurrentUser,
+  footerNavigation,
   navigationGroups,
   type NavigationItem,
 } from '../../data'
@@ -176,6 +185,21 @@ export function DashboardSidebar() {
                     </div>
                   </div>
                 </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuItem onClick={() => navigate('/register')} className="cursor-pointer">
+                    <UserCheck className="size-4" />
+                    Registration & Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/mobile-link')} className="cursor-pointer">
+                    <Smartphone className="size-4" />
+                    Mobile Companion
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/api-keys')} className="cursor-pointer">
+                    <KeyRound className="size-4" />
+                    BYOK Key Vault
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => {

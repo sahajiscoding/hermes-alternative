@@ -44,7 +44,7 @@ async function createWindow() {
   if (isDev && process.env.VITE_DEV_SERVER_URL) {
     await mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL)
   } else {
-    const indexPath = path.join(__dirname, '../dist/index.html')
+    const indexPath = path.join(__dirname, '../../dist/index.html')
     await mainWindow.loadFile(indexPath)
   }
 
