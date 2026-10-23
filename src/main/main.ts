@@ -1,10 +1,13 @@
-import { app, BrowserWindow, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, ipcMain, shell, dialog } from 'electron'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import electronUpdater from 'electron-updater'
 import { localServer } from './server.js'
 import { sleepPrevention } from './power.js'
 import { credentialVault } from './agent/vault.js'
 import { agentTools } from './agent/tools.js'
+
+const { autoUpdater } = electronUpdater as any
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -52,6 +55,59 @@ async function createWindow() {
     mainWindow = null
     sleepPrevention.disable()
   })
+}
+
+// Auto-updater setup
+function setupAutoUpdater() {
+  if (app.isPackaged) {
+    autoUpdater.autoDownload = false
+    autoUpdater.autoInstallOnAppQuit = true
+
+    autoUpdater.on('checking-for-update', () => {
+      mainWindow?.webContents.send('update-status', { status: 'checking' })
+    })
+
+    autoUpdater.on('update-available', (info: any) => {
+      mainWindow?.webContents.send('update-status', { 
+        status: 'available', 
+        version: info.version,
+        releaseNotes: info.releaseNotes 
+      })
+    })
+
+    autoUpdater.on('update-not-available', () => {
+      mainWindow?.webContents.send('update-status', { status: 'not-available' })
+    })
+
+    autoUpdater.on('error', (err: any) => {
+      console.error('Auto-updater error:', err)
+      mainWindow?.webContents.send('update-status', { 
+        status: 'error', 
+        error: err.message 
+      })
+    })
+
+    autoUpdater.on('download-progress', (progress: any) => {
+      mainWindow?.webContents.send('update-download-progress', progress)
+    })
+
+    autoUpdater.on('update-downloaded', (info: any) => {
+      mainWindow?.webContents.send('update-status', { 
+        status: 'downloaded', 
+        version: info.version 
+      })
+    })
+
+    // Check for updates on startup (after window loads)
+    setTimeout(() => {
+      autoUpdater.checkForUpdates()
+    }, 3000)
+
+    // Check for updates every 4 hours
+    setInterval(() => {
+      autoUpdater.checkForUpdates()
+    }, 4 * 60 * 60 * 1000)
+  }
 }
 
 // IPC Handlers
@@ -122,8 +178,36 @@ ipcMain.handle('execute-terminal', async (_event, command: string) => {
   })
 })
 
+// Auto-updater IPC handlers
+ipcMain.handle('check-for-updates', async () => {
+  if (!app.isPackaged) return { success: false, error: 'Not available in development' }
+  try {
+    const result = await autoUpdater.checkForUpdates()
+    return { success: true, updateInfo: result?.updateInfo }
+  } catch (err: any) {
+    return { success: false, error: err.message }
+  }
+})
+
+ipcMain.handle('download-update', async () => {
+  if (!app.isPackaged) return { success: false, error: 'Not available in development' }
+  try {
+    await autoUpdater.downloadUpdate()
+    return { success: true }
+  } catch (err: any) {
+    return { success: false, error: err.message }
+  }
+})
+
+ipcMain.handle('install-update', async () => {
+  if (!app.isPackaged) return { success: false, error: 'Not available in development' }
+  autoUpdater.quitAndInstall(true, true)
+  return { success: true }
+})
+
 app.whenReady().then(async () => {
   await createWindow()
+  setupAutoUpdater()
 
   app.on('activate', async () => {
     if (BrowserWindow.getAllWindows().length === 0) {

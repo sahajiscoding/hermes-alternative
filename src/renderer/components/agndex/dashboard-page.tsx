@@ -1,10 +1,30 @@
-import { DownloadIcon, DeveloperIcon, GithubIcon, MonitorIcon, ShieldIcon, CpuIcon, ZapIcon } from './icons'
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { DownloadIcon, DeveloperIcon, GithubIcon, MonitorIcon, ShieldIcon, CpuIcon, ZapIcon, Loader2Icon, ArrowRightIcon } from './icons'
 
 const EXE_DOWNLOAD_URL = 'https://github.com/sahajiscoding/hermes-alternative/releases/latest/download/Hermes-Alternative-Setup-1.0.0.exe'
 const PORTABLE_DOWNLOAD_URL = 'https://github.com/sahajiscoding/hermes-alternative/releases/latest/download/Hermes-Alternative-1.0.0.exe'
 const GITHUB_REPO_URL = 'https://github.com/sahajiscoding/hermes-alternative'
 
 export function DashboardPage() {
+  const [checking, setChecking] = useState(false)
+  const [lastChecked, setLastChecked] = useState<number | null>(null)
+
+  const checkForUpdates = async () => {
+    setChecking(true)
+    try {
+      const result = await (window as any).electron?.checkForUpdates()
+      if (result?.success && result.updateInfo) {
+        // Update available notification will be shown via UpdateNotification component
+      }
+      setLastChecked(Date.now())
+    } catch (err) {
+      console.error('Check for updates failed:', err)
+    } finally {
+      setChecking(false)
+    }
+  }
+
   return (
     <div className="flex flex-col items-center text-center space-y-12 md:space-y-16">
       {/* Hero Section */}
@@ -168,6 +188,31 @@ export function DashboardPage() {
             >
               License
             </a>
+          </div>
+        </div>
+        
+        {/* Check for Updates Button */}
+        <div className="mt-6 pt-6 border-t border-neutral-800/50 dark:border-neutral-700">
+          <div className="flex items-center justify-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={checkForUpdates}
+              disabled={checking}
+              className="flex items-center gap-2"
+            >
+              {checking ? (
+                <Loader2Icon className="size-4 animate-spin" />
+              ) : (
+                <ArrowRightIcon className="size-4" />
+              )}
+              <span>{checking ? 'Checking...' : 'Check for Updates'}</span>
+            </Button>
+            {lastChecked && (
+              <span className="text-xs text-muted-foreground dark:text-neutral-500">
+                Last checked: {new Date(lastChecked).toLocaleTimeString()}
+              </span>
+            )}
           </div>
         </div>
       </footer>
