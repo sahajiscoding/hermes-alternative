@@ -14,7 +14,7 @@
     "build": "tsc && vite build && tsc -p tsconfig.electron.json",
     "start": "electron .",
     "app:dev": "node scripts/dev.mjs",
-    "dist:win": "npm run build && electron-builder --win nsis",
+    "dist:win": "npm run build && electron-builder --win nsis --publish=never",
     "dist:portable": "npm run build && electron-builder --win portable",
     "dist:all": "npm run build && electron-builder --win"
   },
