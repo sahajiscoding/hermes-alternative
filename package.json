@@ -16,7 +16,7 @@
     "app:dev": "node scripts/dev.mjs",
     "dist:win": "npm run build && electron-builder --win nsis --publish=never",
     "dist:portable": "npm run build && electron-builder --win portable",
-    "dist:all": "npm run build && electron-builder --win"
+    "dist:all": "npm run build && electron-builder --win --publish=never"
   },
   "dependencies": {
     "@fastify/cors": "^10.0.2",
