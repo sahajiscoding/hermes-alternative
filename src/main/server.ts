@@ -1,6 +1,10 @@
-import fastify from 'fastify'
+import fastify, { FastifyInstance } from 'fastify'
 import path from 'path'
 import fs from 'fs'
+import os from 'os'
+import cors from '@fastify/cors'
+import fastifyWebsocket from '@fastify/websocket'
+import fastifyStatic from '@fastify/static'
 import { sleepPrevention } from './power.js'
 
 export interface NetworkInterfaceInfo {
@@ -91,7 +95,7 @@ export class LocalAgentServer {
 
   private setupRoutes() {
     // Handle asset requests from /mobile/assets/... as well as /assets/...
-    this.app.get('/mobile/assets/*', async (req, reply) => {
+    this.app.get('/mobile/assets/*', async (req: any, reply: any) => {
       const assetPath = (req.params as any)['*']
       const filePath = path.resolve(process.cwd(), 'dist', 'assets', assetPath)
       if (fs.existsSync(filePath)) {
@@ -101,13 +105,13 @@ export class LocalAgentServer {
     })
 
     // Mobile SPA routes - serve index.html
-    this.app.get('/mobile', async (req, reply) => {
+    this.app.get('/mobile', async (_req: any, reply: any) => {
       return reply.sendFile('index.html')
     })
-    this.app.get('/mobile/', async (req, reply) => {
+    this.app.get('/mobile/', async (_req: any, reply: any) => {
       return reply.sendFile('index.html')
     })
-    this.app.get('/mobile/*', async (req, reply) => {
+    this.app.get('/mobile/*', async (_req: any, reply: any) => {
       return reply.sendFile('index.html')
     })
 
@@ -129,7 +133,7 @@ export class LocalAgentServer {
       return sleepPrevention.getStatus()
     })
 
-    this.app.post('/api/v1/system/power/toggle', async (req: any) => {
+    this.app.post('/api/v1/system/power/toggle', async (req: any, _reply: any) => {
       const { enable } = req.body || {}
       if (enable !== undefined) {
         enable ? sleepPrevention.enable('Manual toggle') : sleepPrevention.disable()
@@ -143,7 +147,7 @@ export class LocalAgentServer {
     })
 
     // WebSocket real-time agent output streaming
-    this.app.get('/ws/agent-stream', { websocket: true }, (socket, req) => {
+    this.app.get('/ws/agent-stream', { websocket: true }, (socket: any, req: any) => {
       this.wsClients.add(socket)
       socket.send(JSON.stringify({
         type: 'connected',
