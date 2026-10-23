@@ -36,7 +36,7 @@ jobs:
         run: npm run build
 
       - name: Build Windows installer & portable
-        run: npm run dist:win
+        run: npm run dist:all
 
       - name: Rename artifacts for clean URLs
         shell: pwsh
@@ -83,6 +83,7 @@ jobs:
           draft: false
           prerelease: false
           generate_release_notes: true
+          fail_on_unmatched_files: true
           files: |
             artifacts/Hermes-Alternative-Setup-1.0.0.exe
             artifacts/Hermes-Alternative-1.0.0.exe
