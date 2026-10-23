@@ -151,6 +151,31 @@ export function MoonIcon({ className, ...props }: IconProps) {
   )
 }
 
+export function ShieldIcon({ className, ...props }: IconProps) {
+  return (
+    <Icon viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </Icon>
+  )
+}
+
+export function CpuIcon({ className, ...props }: IconProps) {
+  return (
+    <Icon viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+      <rect x="4" y="4" width="16" height="16" rx="2" />
+      <path d="M9 4v16M15 4v16M4 9h16M4 15h16" />
+    </Icon>
+  )
+}
+
+export function ZapIcon({ className, ...props }: IconProps) {
+  return (
+    <Icon viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+    </Icon>
+  )
+}
+
 export function MonitorIcon({ className, ...props }: IconProps) {
   return (
     <Icon viewBox="0 0 24 24" className={cn('size-6', className)} {...props}>
@@ -320,6 +345,14 @@ export function PackageIcon({ className, ...props }: IconProps) {
         fill="currentColor"
         d="M17.3042 6.65167L17.3225 6.81L17.3283 6.97167V13.0283C17.3283 13.3688 17.2447 13.7041 17.0851 14.0048C16.9254 14.3055 16.6945 14.5625 16.4125 14.7533L16.2875 14.8325L11.0417 17.8608L10.9383 17.9167L10.8333 17.9667V10.475L17.3042 6.65167ZM2.69583 6.65167L9.16667 10.4758V17.9658C9.09532 17.9347 9.02577 17.8997 8.95833 17.8608L3.71333 14.8325C3.39663 14.6497 3.13364 14.3867 2.95079 14.07C2.76794 13.7533 2.67168 13.394 2.67167 13.0283V6.97167C2.67167 6.86333 2.68 6.75667 2.69667 6.65167H2.69583ZM11.0417 2.13917L16.2867 5.1675C16.3283 5.1925 16.37 5.2175 16.41 5.24417L10 9.03333L3.59 5.24333C3.63019 5.21632 3.67133 5.19075 3.71333 5.16667L8.95833 2.13833C9.27504 1.95548 9.6343 1.85922 10 1.85922C10.3657 1.85922 10.725 1.95632 11.0417 2.13917Z"
       />
+    </Icon>
+  )
+}
+
+export function GithubIcon({ className, ...props }: IconProps) {
+  return (
+    <Icon viewBox="0 0 24 24" fill="currentColor" className={className} {...props}>
+      <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z" />
     </Icon>
   )
 }

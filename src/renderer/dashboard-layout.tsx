@@ -1,8 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react'
-import { DashboardSidebar } from './components/agndex/sidebar'
-import { DashboardTopbar } from './components/agndex/topbar'
-import { SidebarProvider } from '@/components/ui/sidebar'
-import './dashboard.css'
+import type { ReactNode } from 'react'
 
 type DashboardLayoutProps = {
   children: ReactNode
@@ -10,21 +6,8 @@ type DashboardLayoutProps = {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
-    <SidebarProvider
-      defaultOpen
-      className="agndex-dashboard h-screen w-screen overflow-hidden no-scrollbar bg-background text-foreground"
-      style={
-        {
-          '--sidebar-width': '17.25rem',
-        } as CSSProperties
-      }
-    >
-      <DashboardSidebar />
-
-      <main className="flex-1 flex flex-col h-full overflow-hidden bg-background">
-        <DashboardTopbar />
-        <div className="flex-1 overflow-y-auto">{children}</div>
-      </main>
-    </SidebarProvider>
+    <div className="min-h-screen w-full bg-background dark:bg-neutral-950 text-foreground dark:text-neutral-50">
+      <main className="w-full max-w-6xl mx-auto px-4 py-16 md:py-24">{children}</main>
+    </div>
   )
 }
